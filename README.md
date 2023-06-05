@@ -76,11 +76,19 @@ const sendMessage = () => {
 
 ```javascript
 useEffect(() => {
-  socket.on("receiveMessage", (message) => {
-    setMessages((messages) => [...messages, message]);
-  });
+  const onRecieveMessage = ({ username, message }) => {
+    setMessages((messages) => [...messages, { username, message }]);
+  };
+
+  socket.on("recieveMessage", onRecieveMessage);
+
+  return () => {
+    socket.off("recieveMessage", onRecieveMessage);
+  };
 }, []);
 ```
+
+Ceci est un écouteur pour l'événement `recieveMessage` qui est déclenché par le serveur lorsqu'un utilisateur envoie un message. Le listener arrete d'écouter lorsque le composant est démonté.
 
 ## Partie 6 : Finaliser le serveur
 
@@ -92,12 +100,10 @@ Retournez au fichier `utils/socketIo.js` dans le dossier du serveur.
 socket.join(room);
 
 // broadcast to all clients in the room, except the sender
-socket
-  .to(room)
-  .broadcast.emit("receiveMessage", {
-    message: `${username} a rejoint la salle`,
-    username: "Serveur",
-  });
+socket.to(room).broadcast.emit("receiveMessage", {
+  message: `${username} a rejoint la salle`,
+  username: "Serveur",
+});
 ```
 
 6.2 Ajoutez le code suivant à l'int

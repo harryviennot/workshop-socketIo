@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import {
   StyleSheet,
   TextInput,
@@ -10,45 +10,87 @@ import {
 } from "react-native";
 
 import { SocketContext } from "../contexts/SocketContext";
+import Message from "./Message";
 
 const Chat = () => {
-  const { socket, room, setRoom } = useContext(SocketContext);
+  const flatListRef = useRef();
+  const { socket, room, setRoom, myUsername, setMyUsername } =
+    useContext(SocketContext);
   const [message, setMessage] = useState("");
+  const [currentRoom, setCurrentRoom] = useState("");
   const [messages, setMessages] = useState([]);
-  const [username, setUsername] = useState("");
 
-  const joinChat = () => {};
+  const joinChat = () => {
+    if (!myUsername || !currentRoom) {
+      return;
+    }
+    console.log("room", room);
+    console.log("currentRoom", currentRoom);
+    if (room !== "" && room !== currentRoom) {
+      console.log("Leaving chat", myUsername, room);
+      socket.emit("leaveRoom", { myUsername, room });
+    }
+    setRoom(currentRoom);
+    console.log("Joining chat", myUsername, currentRoom);
+    socket.emit("JoinRoom", { myUsername, currentRoom });
+  };
 
-  const sendMessage = () => {};
+  const sendMessage = () => {
+    if (message) {
+      socket.emit("sendMessage", { myUsername, message, currentRoom });
+      setMessage("");
+    }
+  };
+
+  useEffect(() => {
+    const onRecieveMessage = (data) => {
+      const { username, message } = data;
+      console.log("Recieved message", username, message);
+      setMessages((prevMessages) => [...prevMessages, { username, message }]);
+    };
+
+    socket.on("receiveMessage", onRecieveMessage);
+
+    return () => {
+      socket.off("receiveMessage", onRecieveMessage);
+    };
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Simple Chat</Text>
+      <Text style={styles.header}>SocketIo Chat</Text>
       <TextInput
         placeholder="Username"
         style={styles.input}
-        value={username}
-        onChangeText={(text) => setUsername(text)}
+        value={myUsername}
+        onChangeText={(text) => setMyUsername(text)}
       />
       <TextInput
         placeholder="Room"
         style={styles.input}
-        value={room}
-        onChangeText={(text) => setRoom(text)}
+        value={currentRoom}
+        onChangeText={(text) => setCurrentRoom(text)}
+        autoCapitalize="none"
       />
       <TouchableOpacity style={styles.button} onPress={joinChat}>
         <Text>Join Room</Text>
       </TouchableOpacity>
 
       <FlatList
+        ref={flatListRef}
+        onContentSizeChange={() =>
+          messages.length > 0 &&
+          flatListRef.current.scrollToEnd({ animated: true })
+        }
+        onLayout={() =>
+          messages.length > 0 &&
+          flatListRef.current.scrollToEnd({ animated: true })
+        }
+        style={{ width: "90%" }}
         data={messages}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
-          <View style={styles.message}>
-            <Text>
-              {item.username}: {item.message}
-            </Text>
-          </View>
+          <Message message={item.message} username={item.username} />
         )}
       />
 
@@ -78,14 +120,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     padding: 10,
-    width: "80%",
+    width: "90%",
     margin: 5,
   },
   button: {
     backgroundColor: "#abc",
     borderRadius: 10,
     padding: 10,
-    width: "80%",
+    width: "90%",
     alignItems: "center",
     margin: 5,
   },
