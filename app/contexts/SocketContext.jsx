@@ -5,10 +5,10 @@ import { createContext, useState } from "react";
 export const SocketContext = createContext();
 
 export const SocketProvider = ({ children }) => {
-  const [roomPin, setRoomPin] = useState("");
+  const [room, setRoom] = useState("");
 
   return (
-    <SocketContext.Provider value={{ socket, roomPin, setRoomPin }}>
+    <SocketContext.Provider value={{ room, setRoom }}>
       {children}
     </SocketContext.Provider>
   );
