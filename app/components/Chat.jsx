@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import {
   StyleSheet,
   TextInput,
-  View,
   TouchableOpacity,
   Text,
   FlatList,
@@ -14,40 +13,19 @@ import Message from "./Message";
 
 const Chat = () => {
   const flatListRef = useRef();
-  const { socket, room, setRoom, myUsername, setMyUsername } =
-    useContext(SocketContext);
+  const { socket, room, setRoom } = useContext(SocketContext);
   const [message, setMessage] = useState("");
   const [currentRoom, setCurrentRoom] = useState("");
   const [messages, setMessages] = useState([]);
 
-  const joinChat = () => {
-    if (!myUsername || !currentRoom) {
-      return;
-    }
-    console.log("room", room);
-    console.log("currentRoom", currentRoom);
-    if (room !== "" && room !== currentRoom) {
-      console.log("Leaving chat", myUsername, room);
-      socket.emit("leaveRoom", { myUsername, room });
-    }
-    setRoom(currentRoom);
-    console.log("Joining chat", myUsername, currentRoom);
-    socket.emit("JoinRoom", { myUsername, currentRoom });
-  };
+  const joinChat = () => {};
 
-  const sendMessage = () => {
-    if (message) {
-      socket.emit("sendMessage", { myUsername, message, currentRoom });
-      setMessage("");
-    }
-  };
+  const sendMessage = () => {};
+
+  const sendToAll = () => {};
 
   useEffect(() => {
-    const onRecieveMessage = (data) => {
-      const { username, message } = data;
-      console.log("Recieved message", username, message);
-      setMessages((prevMessages) => [...prevMessages, { username, message }]);
-    };
+    const onRecieveMessage = (data) => {};
 
     socket.on("receiveMessage", onRecieveMessage);
 
@@ -102,6 +80,9 @@ const Chat = () => {
       />
       <TouchableOpacity style={styles.button} onPress={sendMessage}>
         <Text>Send Message</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={sendToAll}>
+        <Text>Send To All</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );

@@ -4,6 +4,13 @@ Bienvenue dans cet atelier où nous allons créer ensemble une application de ch
 
 Tout au long de cet atelier, nous allons compléter des fragments de code dans un projet fourni.
 
+## Partie 0 : Préparation de l'environnement
+
+- installez Node.js et npm : https://nodejs.org/en/download/
+- installez React Native : `npm install -g react-native-cli`
+- installez expo-cli : `npm install -g expo-cli`
+- installez les dépendances du projet dans le dossier app et serveur : `npm install`
+
 ## Partie 1 : Préparation du serveur
 
 Tout d'abord, ouvrez le fichier `utils/socketIo.js` dans le dossier du serveur.
@@ -47,11 +54,12 @@ const socket = io("http://localhost:3001"); // Remplacez localhost par l'adresse
 
 Ouvrez le fichier `components/Chat.jsx`.
 
-3.1 Remplacez la fonction `joinChat` par le code suivant :
+3.1 Remplacez la fonction `joinChat` avec le code necéssaire pour envoyer un evenement en socket.io :
 
 ```javascript
 const joinChat = () => {
-  socket.emit("joinRoom", { username, room });
+  // verifier si le username et le room pin on bien été renseigné
+  // si oui, envoyer un evenement socket.io "JoinRoom" avec les parametres {username, room}
 };
 ```
 
@@ -59,25 +67,23 @@ const joinChat = () => {
 
 Toujours dans le fichier `components/Chat.jsx`,
 
-4.1 Remplacez la fonction `sendMessage` par le code suivant :
+4.1 Remplacez la fonction `sendMessage` par le code necessaire pour envoyer un evenement `sendMessage` en socket.io :
 
 ```javascript
 const sendMessage = () => {
-  if (message) {
-    socket.emit("sendMessage", { username, message, room });
-    setMessage("");
-  }
+  // si le message existe, envoyer avec les parametres {username, message}
+  // reset le message
 };
 ```
 
 ## Partie 5 : Recevoir des messages
 
-5.1 Dans la même fichier `components/Chat.jsx`, ajoutez le code suivant à l'intérieur de `useEffect` :
+5.1 Dans la même fichier `components/Chat.jsx`, ajoutez un useEffect (fonction qui va se lancer à chaque fois que le composant est monté), qui va gerer la reception des messages :
 
 ```javascript
 useEffect(() => {
   const onRecieveMessage = ({ username, message }) => {
-    setMessages((messages) => [...messages, { username, message }]);
+    // ajouter le message à la liste des messages
   };
 
   socket.on("recieveMessage", onRecieveMessage);
@@ -97,23 +103,40 @@ Retournez au fichier `utils/socketIo.js` dans le dossier du serveur.
 6.1 Ajoutez le code suivant à l'intérieur de l'écouteur `joinRoom` :
 
 ```javascript
-socket.join(room);
-
-// broadcast to all clients in the room, except the sender
-socket.to(room).broadcast.emit("receiveMessage", {
-  message: `${username} a rejoint la salle`,
-  username: "Serveur",
+socket.on("JoinRoom", ({ username, room }) => {
+  // rejoindre la salle
+  // envoyer un message à la salle que l'utilisateur a rejoint
+  {
+    message: `${username} a rejoint la salle`,
+    username: "Serveur",
+  };
 });
 ```
 
-6.2 Ajoutez le code suivant à l'int
-
-érieur de l'écouteur `sendMessage` :
+6.2 Ajoutez le code suivant à l'intérieur de l'écouteur `sendMessage` :
 
 ```javascript
 io.to(room).emit("receiveMessage", { username, message });
 ```
 
 Bravo ! Vous avez maintenant une application de chat fonctionnelle.
+
+## Partie 7 : Diffuser des messages à tous les utilisateurs
+
+7.1 Dans le fichier `utils/socketIo.js`, ajoutez un listener pour l'événement `sendToAll` :
+
+```javascript
+socket.on("sendToAll", (message) => {
+  // envoyer le message à tous les utilisateurs
+});
+```
+
+7.2 Dans le fichier `components/Chat.jsx`, ajoutez le code necessaire pour envoyer l'evenement `sendToAll` en socket.io
+
+Vous pouvez maintenant envoyer des messages à tous les utilisateurs en utilisant l'entrée de texte en haut de l'écran.
+
+## Bonus :
+
+Vous pouvez rajouter des fonctionalités a votre application tels que recevoir une notification lorsqu'un utilisateur quitte la salle, ou encore envoyer des images, etc...
 
 N'hésitez pas à explorer davantage et à ajouter d'autres fonctionnalités à votre application. Bon codage !

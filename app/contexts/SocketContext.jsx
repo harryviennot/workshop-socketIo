@@ -1,16 +1,14 @@
 import io from "socket.io-client";
 import { createContext, useState } from "react";
-const socket = io("http://localhost:3001");
+// initiez le socket
+// socket = url de votre serveur node
 export const SocketContext = createContext();
 
 export const SocketProvider = ({ children }) => {
   const [room, setRoom] = useState("");
-  const [myUsername, setMyUsername] = useState("");
 
   return (
-    <SocketContext.Provider
-      value={{ socket, room, setRoom, myUsername, setMyUsername }}
-    >
+    <SocketContext.Provider value={{ socket, room, setRoom }}>
       {children}
     </SocketContext.Provider>
   );
