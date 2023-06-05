@@ -27,6 +27,14 @@ const Socket = (server) => {
       });
     });
 
+    socket.on("sendToAll", ({ myUsername, message }) => {
+      console.log("message received", message);
+      io.emit("receiveMessage", {
+        username: myUsername,
+        message,
+      });
+    });
+
     socket.on("leaveRoom", ({ myUsername, room }) => {
       console.log("user left room", myUsername, room);
       socket.leave(room);

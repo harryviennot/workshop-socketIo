@@ -42,6 +42,13 @@ const Chat = () => {
     }
   };
 
+  const sendToAll = () => {
+    if (message) {
+      socket.emit("sendToAll", { myUsername, message });
+      setMessage("");
+    }
+  };
+
   useEffect(() => {
     const onRecieveMessage = (data) => {
       const { username, message } = data;
@@ -102,6 +109,9 @@ const Chat = () => {
       />
       <TouchableOpacity style={styles.button} onPress={sendMessage}>
         <Text>Send Message</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={sendToAll}>
+        <Text>Send To All</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
